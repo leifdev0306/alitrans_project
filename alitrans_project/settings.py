@@ -81,16 +81,16 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# ============ CONFIGURACIÓN DE CORREO (GMAIL) ============
+#config del correo
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='leifdev0306@gmail.com')
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')  # App Password de Gmail
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')     
 DEFAULT_FROM_EMAIL = f'Alitrans <{EMAIL_HOST_USER}>'
 
-# ============ CELERY ============
+# automatizacion de envio de anuncios
 CELERY_BROKER_URL = config('REDIS_URL', default='redis://localhost:6379/0')
 CELERY_RESULT_BACKEND = 'django-db'
 CELERY_ACCEPT_CONTENT = ['json']
