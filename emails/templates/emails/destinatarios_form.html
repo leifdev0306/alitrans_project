@@ -1,0 +1,32 @@
+{% extends 'emails/base.html' %}
+{% block title %}{% if modo == 'editar' %}Editar{% else %}Nuevo{% endif %} Destinatario{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1><i class="bi bi-person-plus-fill"></i>
+        {% if modo == 'editar' %}Editar destinatario{% else %}Nuevo destinatario{% endif %}</h1>
+    <a href="{% url 'emails:lista_destinatarios' %}" class="btn-ali-outline">
+        <i class="bi bi-arrow-left"></i> Volver</a>
+</div>
+
+<form method="post" class="card-ali" style="max-width:800px;">
+    {% csrf_token %}
+    <div class="row g-3">
+        <div class="col-md-6"><label class="form-label">Correo *</label>{{ form.email }}</div>
+        <div class="col-md-6"><label class="form-label">Nombre *</label>{{ form.nombre }}</div>
+        <div class="col-md-6"><label class="form-label">Teléfono</label>{{ form.telefono }}</div>
+        <div class="col-md-6"><label class="form-label">Empresa</label>{{ form.empresa }}</div>
+        <div class="col-md-6"><label class="form-label">Sector</label>{{ form.sector }}</div>
+        <div class="col-md-6">
+            <div class="form-check form-switch mt-4" style="padding-left:3rem;">
+                {{ form.activo }}
+                <label class="form-check-label ms-2" for="{{ form.activo.id_for_label }}">
+                    <strong>Activo</strong></label>
+            </div>
+        </div>
+    </div>
+    <div class="d-flex gap-2 mt-4">
+        <button class="btn-ali"><i class="bi bi-check-lg"></i> Guardar</button>
+        <a href="{% url 'emails:lista_destinatarios' %}" class="btn-ali-outline">Cancelar</a>
+    </div>
+</form>
+{% endblock %}

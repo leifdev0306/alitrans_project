@@ -1,0 +1,101 @@
+{% extends 'emails/base.html' %}
+{% block title %}{{ envio.nombre_campana }} - Alitrans{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1><i class="bi bi-send-fill"></i> {{ envio.nombre_campana }}</h1>
+    <a href="{% url 'emails:lista_envios' %}" class="btn-ali-outline">
+        <i class="bi bi-arrow-left"></i> Volver</a>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card-ali mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold mb-0" style="color:var(--ali-dark);">Estado</h5>
+                {% if envio.estado == 'enviado' %}<span class="badge-soft badge-soft-success" style="font-size:0.85rem;"><i class="bi bi-check-circle-fill"></i> Enviado</span>
+                {% elif envio.estado == 'programado' %}<span class="badge-soft badge-soft-warning" style="font-size:0.85rem;"><i class="bi bi-clock-fill"></i> Programado</span>
+                {% elif envio.estado == 'enviando' %}<span class="badge-soft badge-soft-info" style="font-size:0.85rem;"><i class="bi bi-arrow-repeat"></i> Enviando</span>
+                {% elif envio.estado == 'fallido' %}<span class="badge-soft badge-soft-danger" style="font-size:0.85rem;"><i class="bi bi-x-circle-fill"></i> Fallido</span>
+                {% elif envio.estado == 'cancelado' %}<span class="badge-soft badge-soft-secondary" style="font-size:0.85rem;">Cancelado</span>
+                {% else %}<span class="badge-soft badge-soft-secondary" style="font-size:0.85rem;">Borrador</span>{% endif %}
+            </div>
+
+            <div class="row text-center">
+                <div class="col-4">
+                    <div class="stat-icon mx-auto mb-2" style="background:#d1fae5;color:#065f46;">
+                        <i class="bi bi-check2-circle"></i></div>
+                    <div class="stat-value">{{ envio.total_enviados }}</div>
+                    <p class="stat-label">Enviados</p>
+                </div>
+                <div class="col-4">
+                    <div class="stat-icon mx-auto mb-2" style="background:#fee2e2;color:#991b1b;">
+                        <i class="bi bi-x-circle"></i></div>
+                    <div class="stat-value">{{ envio.total_fallidos }}</div>
+                    <p class="stat-label">Fallidos</p>
+                </div>
+                <div class="col-4">
+                    <div class="stat-icon mx-auto mb-2" style="background:#dbeafe;color:#1e40af;">
+                        <i class="bi bi-people"></i></div>
+                    <div class="stat-value">
+                        {% if envio.enviar_a_todos %}Todos{% else %}{{ envio.destinatarios.count }}{% endif %}</div>
+                    <p class="stat-label">Destinatarios</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-ali">
+            <h5 class="fw-bold mb-3" style="color:var(--ali-dark);">
+                <i class="bi bi-info-circle"></i> Información</h5>
+            <div class="row g-3">
+                <div class="col-md-6"><span class="text-muted">Oferta:</span><br>
+                    <strong>{{ envio.oferta.titulo }}</strong></div>
+                <div class="col-md-6"><span class="text-muted">Tipo de envío:</span><br>
+                    <strong>{{ envio.get_tipo_envio_display }}</strong></div>
+                <div class="col-md-6"><span class="text-muted">Asunto:</span><br>
+                    <strong>{{ envio.asunto_personalizado|default:envio.oferta.titulo }}</strong></div>
+                <div class="col-md-6"><span class="text-muted">Creado:</span><br>
+                    <strong>{{ envio.fecha_creacion|date:"d/m/Y H:i" }}</strong></div>
+                {% if envio.fecha_programada %}
+                    <div class="col-md-6"><span class="text-muted">Programado para:</span><br>
+                        <strong>{{ envio.fecha_programada|date:"d/m/Y H:i" }}</strong></div>
+                {% endif %}
+                {% if envio.fecha_envio %}
+                    <div class="col-md-6"><span class="text-muted">Enviado el:</span><br>
+                        <strong>{{ envio.fecha_envio|date:"d/m/Y H:i" }}</strong></div>
+                {% endif %}
+            </div>
+            {% if envio.notas %}
+                <hr>
+                <p class="text-muted mb-1 small"><strong>Notas internas:</strong></p>
+                <p style="white-space:pre-wrap;font-size:0.88rem;">{{ envio.notas }}</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card-ali mb-4">
+            <h5 class="fw-bold mb-3" style="color:var(--ali-dark);">
+                <i class="bi bi-gear-fill"></i> Acciones</h5>
+            <div class="d-grid gap-2">
+                {% if envio.estado == 'borrador' or envio.estado == 'programado' %}
+                    <a href="{% url 'emails:lanzar_envio' envio.pk %}" class="btn-ali"
+                       style="background:#10b981;"
+                       onclick="return confirm('¿Lanzar el envío ahora mismo?')">
+                        <i class="bi bi-send-fill"></i> Lanzar envío</a>
+                    <a href="{% url 'emails:editar_envio' envio.pk %}" class="btn-ali-outline">
+                        <i class="bi bi-pencil"></i> Editar</a>
+                    <a href="{% url 'emails:cancelar_envio' envio.pk %}" class="btn-ali-outline"
+                       style="border-color:#ef4444;color:#ef4444;"
+                       onclick="return confirm('¿Cancelar esta campaña?')">
+                        <i class="bi bi-x-circle"></i> Cancelar</a>
+                {% else %}
+                    <div class="alert alert-info mb-0" style="border-radius:10px;font-size:0.85rem;">
+                        Esta campaña ya fue procesada.</div>
+                {% endif %}
+                <a href="{% url 'emails:detalle_oferta' envio.oferta.pk %}" class="btn-ali-outline">
+                    <i class="bi bi-tag"></i> Ver oferta</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

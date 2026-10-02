@@ -1,24 +1,45 @@
 from django.contrib import admin
-from .models import Email, Destinatario
+from django.utils.html import format_html
+from .models import Oferta, ImagenOferta, Destinatario, Envio
 
 
-@admin.register(Email)
-class EmailAdmin(admin.ModelAdmin):
-    list_display = ('asunto', 'estado', 'fecha_creacion', 'fecha_envio', 'es_aleatorio')
-    list_filter = ('estado', 'es_aleatorio')
-    search_fields = ('asunto', 'destinatarios')
-    actions = ['enviar_seleccionados']
+class ImagenOfertaInline(admin.TabularInline):
+    model = ImagenOferta
+    extra = 1
+    fields = ('imagen', 'titulo', 'orden', 'preview')
+    readonly_fields = ('preview',)
 
-    def enviar_seleccionados(self, request, queryset):
-        from .tasks import enviar_correo
-        for email in queryset:
-            enviar_correo.delay(email.id)
-        self.message_user(request, f'{queryset.count()} correos enviados en cola.')
-    enviar_seleccionados.short_description = 'Enviar correos seleccionados'
+    def preview(self, obj):
+        if obj.imagen:
+            return format_html('<img src="{}" style="max-height:80px;" />', obj.imagen.url)
+        return '—'
+    preview.short_description = 'Vista previa'
+
+
+@admin.register(Oferta)
+class OfertaAdmin(admin.ModelAdmin):
+    list_display = ('titulo', 'tipo_servicio', 'descuento_porcentaje',
+                    'activa', 'esta_vigente', 'fecha_creacion')
+    list_filter = ('activa', 'tipo_servicio')
+    search_fields = ('titulo', 'subtitulo', 'descripcion_corta')
+    list_editable = ('activa',)
+    inlines = [ImagenOfertaInline]
 
 
 @admin.register(Destinatario)
 class DestinatarioAdmin(admin.ModelAdmin):
-    list_display = ('email', 'nombre', 'activo', 'fecha_suscripcion')
-    list_filter = ('activo',)
-    search_fields = ('email', 'nombre')
+    list_display = ('nombre', 'email', 'empresa', 'sector', 'activo')
+    list_filter = ('activo', 'sector')
+    search_fields = ('nombre', 'email', 'empresa')
+    list_editable = ('activo',)
+
+
+@admin.register(Envio)
+class EnvioAdmin(admin.ModelAdmin):
+    list_display = ('nombre_campana', 'oferta', 'tipo_envio', 'estado',
+                    'total_enviados', 'total_fallidos', 'fecha_creacion')
+    list_filter = ('estado', 'tipo_envio')
+    search_fields = ('nombre_campana', 'oferta__titulo')
+    readonly_fields = ('total_enviados', 'total_fallidos',
+                       'fecha_creacion', 'fecha_envio')
+    filter_horizontal = ('destinatarios',)

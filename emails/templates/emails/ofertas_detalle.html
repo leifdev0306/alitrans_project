@@ -1,0 +1,101 @@
+{% extends 'emails/base.html' %}
+{% block title %}{{ oferta.titulo }} - Alitrans{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1><i class="bi bi-tag-fill"></i> {{ oferta.titulo }}</h1>
+    <div class="d-flex gap-2">
+        <a href="{% url 'emails:editar_oferta' oferta.pk %}" class="btn-ali-outline">
+            <i class="bi bi-pencil"></i> Editar</a>
+        <a href="{% url 'emails:lista_ofertas' %}" class="btn-ali-outline">
+            <i class="bi bi-arrow-left"></i> Volver</a>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card-ali mb-4">
+            <div class="d-flex justify-content-between mb-3">
+                <span class="oferta-tipo">{{ oferta.get_tipo_servicio_display }}</span>
+                {% if oferta.activa %}<span class="badge-soft badge-soft-success">Activa</span>
+                {% else %}<span class="badge-soft badge-soft-secondary">Inactiva</span>{% endif %}
+            </div>
+            {% if oferta.imagen_principal %}
+                <img src="{{ oferta.imagen_principal.url }}" style="width:100%;border-radius:10px;margin-bottom:16px;">
+            {% endif %}
+            {% if oferta.subtitulo %}<p style="color:var(--ali-secondary);font-weight:600;">{{ oferta.subtitulo }}</p>{% endif %}
+            <p class="text-muted">{{ oferta.descripcion_corta }}</p>
+        </div>
+
+        {% if oferta.imagenes.all %}
+        <div class="card-ali mb-4">
+            <h5 class="fw-bold mb-3" style="color:var(--ali-dark);">
+                <i class="bi bi-images"></i> Imágenes adicionales</h5>
+            <div class="row g-2">
+                {% for img in oferta.imagenes.all %}
+                    <div class="col-md-4">
+                        <img src="{{ img.imagen.url }}" style="width:100%;height:150px;object-fit:cover;border-radius:10px;">
+                        <div class="text-muted small mt-1">{{ img.titulo }}</div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="card-ali">
+            <h5 class="fw-bold mb-3" style="color:var(--ali-dark);">
+                <i class="bi bi-code-slash"></i> Vista previa del contenido HTML</h5>
+            <div style="background:#f8fafc;border-radius:10px;padding:20px;border:1px dashed #cbd5e1;">
+                {{ oferta.contenido_html|safe }}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card-ali mb-4">
+            <h5 class="fw-bold mb-3" style="color:var(--ali-dark);">
+                <i class="bi bi-bar-chart"></i> Estadísticas</h5>
+            <div class="d-flex justify-content-between mb-2">
+                <span class="text-muted">Envíos:</span><strong>{{ oferta.total_envios }}</strong></div>
+            <div class="d-flex justify-content-between mb-2">
+                <span class="text-muted">Correos enviados:</span>
+                <strong>{{ oferta.total_destinatarios_alcanzados }}</strong></div>
+            <div class="d-flex justify-content-between"><span class="text-muted">Vigente:</span>
+                {% if oferta.esta_vigente %}<strong class="text-success">Sí</strong>
+                {% else %}<strong class="text-danger">No</strong>{% endif %}
+            </div>
+        </div>
+
+        <div class="card-ali mb-4">
+            <h5 class="fw-bold mb-3" style="color:var(--ali-dark);">
+                <i class="bi bi-cash-coin"></i> Detalles</h5>
+            {% if oferta.descuento_porcentaje > 0 %}
+                <div class="d-flex justify-content-between mb-2"><span class="text-muted">Descuento:</span>
+                    <strong>{{ oferta.descuento_porcentaje }}%</strong></div>
+            {% endif %}
+            {% if oferta.precio_desde %}
+                <div class="d-flex justify-content-between mb-2"><span class="text-muted">Precio desde:</span>
+                    <strong>{{ oferta.precio_desde }} CUP</strong></div>
+            {% endif %}
+            {% if oferta.valida_desde %}
+                <div class="d-flex justify-content-between mb-2"><span class="text-muted">Válida desde:</span>
+                    <strong>{{ oferta.valida_desde|date:"d/m/Y" }}</strong></div>
+            {% endif %}
+            {% if oferta.valida_hasta %}
+                <div class="d-flex justify-content-between"><span class="text-muted">Válida hasta:</span>
+                    <strong>{{ oferta.valida_hasta|date:"d/m/Y" }}</strong></div>
+            {% endif %}
+        </div>
+
+        <div class="d-grid gap-2">
+            <a href="{% url 'emails:toggle_oferta' oferta.pk %}" class="btn-ali"
+               style="background:{% if oferta.activa %}#ef4444{% else %}#10b981{% endif %};">
+                {% if oferta.activa %}<i class="bi bi-pause-circle"></i> Desactivar oferta
+                {% else %}<i class="bi bi-play-circle"></i> Activar oferta{% endif %}
+            </a>
+            <a href="{% url 'emails:crear_envio' %}?oferta={{ oferta.pk }}" class="btn-ali">
+                <i class="bi bi-send"></i> Crear campaña con esta oferta
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

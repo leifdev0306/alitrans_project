@@ -1,11 +1,10 @@
-import os
 from pathlib import Path
 from decouple import config
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = config('SECRET_KEY', default='tu-clave-secreta-aqui')
-DEBUG = config('DEBUG', default=True, cast=bool)
+SECRET_KEY = config('SECRET_KEY', default='dev-insecure-key')
+DEBUG = config('DEBUG', default=False, cast=bool)
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1').split(',')
 
 INSTALLED_APPS = [
@@ -15,13 +14,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    # Terceros
     'rest_framework',
-    'django_celery_beat',
-    'django_celery_results',
-    # Apps propias
     'emails',
-    'frontend',
 ]
 
 MIDDLEWARE = [
@@ -40,7 +34,7 @@ ROOT_URLCONF = 'alitrans_project.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'frontend' / 'templates'],
+        'DIRS': [],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -76,28 +70,24 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_DIRS = [BASE_DIR / 'frontend' / 'static']
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-#config del correo
+# ============ CORREO (Gmail SMTP) ============
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='leifdev0306@gmail.com')
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')     
-DEFAULT_FROM_EMAIL = f'Alitrans <{EMAIL_HOST_USER}>'
-
-# automatizacion de envio de anuncios
-CELERY_BROKER_URL = config('REDIS_URL', default='redis://localhost:6379/0')
-CELERY_RESULT_BACKEND = 'django-db'
-CELERY_ACCEPT_CONTENT = ['json']
-CELERY_TASK_SERIALIZER = 'json'
-CELERY_RESULT_SERIALIZER = 'json'
-CELERY_TIMEZONE = 'America/Havana'
-CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
+DEFAULT_FROM_EMAIL = config(
+    'DEFAULT_FROM_EMAIL',
+    default=f'Alitrans <{EMAIL_HOST_USER}>'
+)
 
 # ============ REST FRAMEWORK ============
 REST_FRAMEWORK = {
@@ -105,6 +95,11 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.SessionAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.AllowAny',  # Cambiar a IsAuthenticated en producción
+        'rest_framework.permissions.AllowAny',
     ],
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 50,
 }
+
+DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024
+FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024

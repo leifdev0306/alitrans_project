@@ -1,0 +1,181 @@
+{% extends 'emails/base.html' %}
+{% block title %}{% if modo == 'editar' %}Editar{% else %}Nueva{% endif %} Oferta - Alitrans{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>
+        <i class="bi bi-{% if modo == 'editar' %}pencil-square{% else %}plus-circle{% endif %}"></i>
+        {% if modo == 'editar' %}Editar oferta{% else %}Nueva oferta{% endif %}
+    </h1>
+    <a href="{% url 'emails:lista_ofertas' %}" class="btn-ali-outline">
+        <i class="bi bi-arrow-left"></i> Volver
+    </a>
+</div>
+
+<form method="post" enctype="multipart/form-data" novalidate>
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+        <div class="alert alert-danger" style="border-radius:10px;">{{ form.non_field_errors }}</div>
+    {% endif %}
+
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card-ali mb-4">
+                <h5 class="fw-bold mb-3" style="color:var(--ali-dark);">
+                    <i class="bi bi-info-circle"></i> Información básica</h5>
+
+                <div class="mb-3">
+                    <label class="form-label">{{ form.titulo.label }}</label>
+                    {{ form.titulo }}
+                    {% if form.titulo.errors %}<div class="text-danger small mt-1">{{ form.titulo.errors.0 }}</div>{% endif %}
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">{{ form.subtitulo.label }}</label>
+                    {{ form.subtitulo }}
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">{{ form.tipo_servicio.label }}</label>
+                        {{ form.tipo_servicio }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">{{ form.descripcion_corta.label }}</label>
+                        {{ form.descripcion_corta }}
+                        {% if form.descripcion_corta.errors %}<div class="text-danger small mt-1">{{ form.descripcion_corta.errors.0 }}</div>{% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-ali mb-4">
+                <h5 class="fw-bold mb-3" style="color:var(--ali-dark);">
+                    <i class="bi bi-code-slash"></i> Contenido HTML del correo</h5>
+                <label class="form-label">{{ form.contenido_html.label }}</label>
+                {{ form.contenido_html }}
+                <p class="help-text">
+                    Puedes usar etiquetas HTML: <code>&lt;h1&gt;</code>, <code>&lt;p&gt;</code>,
+                    <code>&lt;strong&gt;</code>, <code>&lt;ul&gt;&lt;li&gt;</code>, etc.
+                </p>
+                {% if form.contenido_html.errors %}<div class="text-danger small mt-1">{{ form.contenido_html.errors.0 }}</div>{% endif %}
+            </div>
+
+            {% if modo == 'editar' %}
+            <div class="card-ali">
+                <h5 class="fw-bold mb-3" style="color:var(--ali-dark);">
+                    <i class="bi bi-images"></i> Imágenes adicionales</h5>
+                {% if oferta.imagenes.all %}
+                    <div class="row g-2 mb-3">
+                        {% for img in oferta.imagenes.all %}
+                            <div class="col-md-4">
+                                <div style="position:relative;border:1px solid #e2e8f0;border-radius:10px;padding:8px;">
+                                    <img src="{{ img.imagen.url }}" style="width:100%;height:120px;object-fit:cover;border-radius:6px;">
+                                    <div class="text-muted small mt-1">{{ img.titulo|default:"Sin título" }}</div>
+                                    <a href="{% url 'emails:eliminar_imagen_oferta' img.pk %}"
+                                       class="btn btn-sm btn-danger" style="position:absolute;top:12px;right:12px;"
+                                       onclick="return confirm('¿Eliminar esta imagen?')">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted">No hay imágenes adicionales.</p>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card-ali mb-4">
+                <h5 class="fw-bold mb-3" style="color:var(--ali-dark);">
+                    <i class="bi bi-toggles"></i> Estado</h5>
+                <div class="form-check form-switch" style="padding-left:3rem;">
+                    {{ form.activa }}
+                    <label class="form-check-label ms-2" for="{{ form.activa.id_for_label }}">
+                        <strong>Oferta activa</strong></label>
+                </div>
+                <p class="help-text mt-2">Solo las ofertas activas pueden incluirse en envíos.</p>
+            </div>
+
+            <div class="card-ali mb-4">
+                <h5 class="fw-bold mb-3" style="color:var(--ali-dark);">
+                    <i class="bi bi-image"></i> Imagen principal</h5>
+                {% if oferta and oferta.imagen_principal %}
+                    <img src="{{ oferta.imagen_principal.url }}" style="width:100%;border-radius:10px;margin-bottom:10px;">
+                {% endif %}
+                {{ form.imagen_principal }}
+                <p class="help-text">Se mostrará en la parte superior del correo.</p>
+            </div>
+
+            <div class="card-ali mb-4">
+                <h5 class="fw-bold mb-3" style="color:var(--ali-dark);">
+                    <i class="bi bi-cash-coin"></i> Promoción</h5>
+                <div class="mb-3">
+                    <label class="form-label">{{ form.descuento_porcentaje.label }}</label>
+                    <div class="input-group">
+                        {{ form.descuento_porcentaje }}
+                        <span class="input-group-text">%</span>
+                    </div>
+                </div>
+                <div class="mb-0">
+                    <label class="form-label">{{ form.precio_desde.label }}</label>
+                    <div class="input-group">
+                        {{ form.precio_desde }}
+                        <span class="input-group-text">CUP</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-ali">
+                <h5 class="fw-bold mb-3" style="color:var(--ali-dark);">
+                    <i class="bi bi-calendar-check"></i> Vigencia</h5>
+                <div class="mb-3">
+                    <label class="form-label">{{ form.valida_desde.label }}</label>
+                    {{ form.valida_desde }}
+                </div>
+                <div class="mb-0">
+                    <label class="form-label">{{ form.valida_hasta.label }}</label>
+                    {{ form.valida_hasta }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex gap-2 mt-4">
+        <button type="submit" class="btn-ali">
+            <i class="bi bi-check-lg"></i>
+            {% if modo == 'editar' %}Guardar cambios{% else %}Crear oferta{% endif %}
+        </button>
+        <a href="{% url 'emails:lista_ofertas' %}" class="btn-ali-outline">Cancelar</a>
+        {% if modo == 'editar' %}
+            <a href="{% url 'emails:eliminar_oferta' oferta.pk %}" class="btn-ali-outline ms-auto"
+               style="border-color:#ef4444;color:#ef4444;">
+                <i class="bi bi-trash"></i> Eliminar</a>
+        {% endif %}
+    </div>
+</form>
+
+{% if modo == 'editar' %}
+    <div class="card-ali mt-4">
+        <h5 class="fw-bold mb-3" style="color:var(--ali-dark);">
+            <i class="bi bi-plus-circle"></i> Añadir imagen adicional</h5>
+        <form method="post" enctype="multipart/form-data" class="row g-2 align-items-end">
+            {% csrf_token %}
+            <div class="col-md-5">
+                <label class="form-label">Imagen</label>{{ imagen_form.imagen }}
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Título / alt</label>{{ imagen_form.titulo }}
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Orden</label>{{ imagen_form.orden }}
+            </div>
+            <div class="col-md-1">
+                <button name="subir_imagen" value="1" class="btn-ali w-100">
+                    <i class="bi bi-upload"></i>
+                </button>
+            </div>
+        </form>
+    </div>
+{% endif %}
+{% endblock %}
